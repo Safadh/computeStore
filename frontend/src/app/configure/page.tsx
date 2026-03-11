@@ -33,6 +33,9 @@ export default function ConfigureVMPage() {
   const [storage, setStorage] = useState(50);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<
+    "instance" | "os" | "storage" | "network" | "region" | "details" | "review"
+  >("instance");
 
   useEffect(() => {
     if (!getToken()) {
@@ -81,95 +84,180 @@ export default function ConfigureVMPage() {
 
         <div className="grid gap-4 lg:grid-cols-[2fr,1fr] items-start">
           <div className="space-y-3">
-            {/* Simple tab strip (static for now) */}
             <div className="flex flex-wrap border-b border-slate-200 text-xs font-medium text-slate-600 dark:border-slate-800 dark:text-slate-300">
-              {["Instance", "OS", "Storage", "Network", "Region", "Details", "Review"].map(
-                (tab, idx) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    className={`px-3 py-2 border-b-2 ${
-                      idx === 0
-                        ? "border-brand-500 text-brand-600 dark:text-brand-500"
-                        : "border-transparent hover:border-slate-300 dark:hover:border-slate-700"
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ),
-              )}
+              {[
+                { id: "instance", label: "Instance" },
+                { id: "os", label: "OS" },
+                { id: "storage", label: "Storage" },
+                { id: "network", label: "Network" },
+                { id: "region", label: "Region" },
+                { id: "details", label: "Details" },
+                { id: "review", label: "Review" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() =>
+                    setActiveTab(tab.id as typeof activeTab)
+                  }
+                  className={`px-3 py-2 border-b-2 ${
+                    activeTab === tab.id
+                      ? "border-brand-500 text-brand-600 dark:text-brand-500"
+                      : "border-transparent hover:border-slate-300 dark:hover:border-slate-700"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
             <div className="space-y-4 mt-2">
-              {/* Instance name / OS */}
-              <div className="card p-4 space-y-3">
-                <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">
-                  Instance details
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div className="space-y-1 text-xs">
-                    <label className="text-slate-600 dark:text-slate-400">
-                      Instance name
-                    </label>
-                    <input
-                      className="input"
-                      value={"My custom VM"}
-                      readOnly
-                    />
+              {activeTab === "instance" && (
+                <>
+                  <div className="card p-4 space-y-3">
+                    <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                      Instance details
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="space-y-1 text-xs">
+                        <label className="text-slate-600 dark:text-slate-400">
+                          Instance name
+                        </label>
+                        <input
+                          className="input"
+                          value={"My custom VM"}
+                          readOnly
+                        />
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <label className="text-slate-600 dark:text-slate-400">
+                          Operating system
+                        </label>
+                        <select
+                          className="input"
+                          value={os}
+                          onChange={(e) => setOs(e.target.value)}
+                        >
+                          {OS_OPTIONS.map((o) => (
+                            <option key={o} value={o}>
+                              {o}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-1 text-xs">
-                    <label className="text-slate-600 dark:text-slate-400">
-                      Operating system
-                    </label>
-                    <select
-                      className="input"
-                      value={os}
-                      onChange={(e) => setOs(e.target.value)}
-                    >
-                      {OS_OPTIONS.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
+
+                  <SliderCard
+                    label="CPU cores"
+                    valueLabel={`${cpu} vCPU`}
+                    min={1}
+                    max={64}
+                    value={cpu}
+                    onChange={setCpu}
+                    leftLabel="1 core"
+                    rightLabel="64 cores"
+                  />
+
+                  <SliderCard
+                    label="Memory"
+                    valueLabel={`${ram} GB RAM`}
+                    min={1}
+                    max={512}
+                    value={ram}
+                    onChange={setRam}
+                    leftLabel="1 GB"
+                    rightLabel="512 GB"
+                  />
+                </>
+              )}
+
+              {activeTab === "os" && (
+                <div className="card p-4 space-y-3">
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                    Choose your operating system
                   </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                    Pick the image that best matches your stack. Linux options are ideal
+                    for most workloads; Windows Server is available for .NET and desktop
+                    apps.
+                  </p>
+                  <select
+                    className="input"
+                    value={os}
+                    onChange={(e) => setOs(e.target.value)}
+                  >
+                    {OS_OPTIONS.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </div>
+              )}
 
-              {/* Sliders act as Instance Type / Storage selection */}
-              <SliderCard
-                label="CPU cores"
-                valueLabel={`${cpu} vCPU`}
-                min={1}
-                max={64}
-                value={cpu}
-                onChange={setCpu}
-                leftLabel="1 core"
-                rightLabel="64 cores"
-              />
+              {activeTab === "storage" && (
+                <SliderCard
+                  label="Storage"
+                  valueLabel={`${storage} GB SSD`}
+                  min={10}
+                  max={10240}
+                  step={10}
+                  value={storage}
+                  onChange={setStorage}
+                  leftLabel="10 GB"
+                  rightLabel="10 TB"
+                />
+              )}
 
-              <SliderCard
-                label="Memory"
-                valueLabel={`${ram} GB RAM`}
-                min={1}
-                max={512}
-                value={ram}
-                onChange={setRam}
-                leftLabel="1 GB"
-                rightLabel="512 GB"
-              />
+              {activeTab === "network" && (
+                <div className="card p-4 text-xs space-y-2">
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                    Network (placeholder)
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    In a future iteration this tab will let you choose VPCs, subnets, and
+                    security groups that map to Huawei Cloud networking concepts.
+                  </p>
+                </div>
+              )}
 
-              <SliderCard
-                label="Storage"
-                valueLabel={`${storage} GB SSD`}
-                min={10}
-                max={10240}
-                step={10}
-                value={storage}
-                onChange={setStorage}
-                leftLabel="10 GB"
-                rightLabel="10 TB"
-              />
+              {activeTab === "region" && (
+                <div className="card p-4 text-xs space-y-2">
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                    Region (placeholder)
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Here you will be able to select Huawei Cloud regions and availability
+                    zones to deploy your VM closer to your users.
+                  </p>
+                </div>
+              )}
+
+              {activeTab === "details" && (
+                <div className="card p-4 text-xs space-y-2">
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                    Additional details (placeholder)
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    This step can capture tags, project names, and other metadata for
+                    cost allocation and organization.
+                  </p>
+                </div>
+              )}
+
+              {activeTab === "review" && (
+                <div className="card p-4 text-xs space-y-2">
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                    Review configuration
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Double‑check your CPU, memory, storage, OS and region before adding
+                    this VM to the cart. The summary panel on the right always reflects
+                    your latest selections.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
