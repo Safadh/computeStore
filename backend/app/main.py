@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.routers import auth, cart, checkout, offers, vms
+from app.routers import auth, cart, checkout, vms
 
 
 def create_app() -> FastAPI:
@@ -20,7 +20,6 @@ def create_app() -> FastAPI:
 
     api_prefix = settings.api_prefix
     app.include_router(auth.router, prefix=api_prefix)
-    app.include_router(offers.router, prefix=api_prefix)
     app.include_router(cart.router, prefix=api_prefix)
     app.include_router(checkout.router, prefix=api_prefix)
     app.include_router(vms.router, prefix=api_prefix)

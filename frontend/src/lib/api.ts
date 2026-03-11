@@ -10,7 +10,7 @@ const AUTH_EVENT = "cs_auth_changed";
 
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = window.sessionStorage.getItem(TOKEN_KEY);
     if (token) {
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -21,18 +21,18 @@ api.interceptors.request.use((config) => {
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(TOKEN_KEY);
+  return window.sessionStorage.getItem(TOKEN_KEY);
 }
 
 export function setToken(token: string) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(TOKEN_KEY, token);
+  window.sessionStorage.setItem(TOKEN_KEY, token);
   window.dispatchEvent(new Event(AUTH_EVENT));
 }
 
 export function clearToken() {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(TOKEN_KEY);
+  window.sessionStorage.removeItem(TOKEN_KEY);
   window.dispatchEvent(new Event(AUTH_EVENT));
 }
 
@@ -92,6 +92,19 @@ export async function register(payload: {
   password: string;
 }) {
   await api.post("/auth/register", payload);
+}
+
+export type Me = {
+  id: number;
+  email: string;
+  full_name?: string | null;
+  is_active: boolean;
+  created_at: string;
+};
+
+export async function fetchMe() {
+  const { data } = await api.get<Me>("/auth/me");
+  return data;
 }
 
 export async function fetchOffers() {

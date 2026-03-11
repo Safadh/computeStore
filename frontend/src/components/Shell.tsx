@@ -4,18 +4,36 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { clearToken, getToken, onAuthChanged } from "@/lib/api";
+import { clearToken, fetchMe, getToken, onAuthChanged } from "@/lib/api";
 import { useTheme } from "@/components/ThemeProvider";
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const { theme, toggle } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const refresh = () => setIsAuthenticated(!!getToken());
-    refresh();
-    return onAuthChanged(refresh);
+    const refresh = async () => {
+      const authed = !!getToken();
+      setIsAuthenticated(authed);
+      if (!authed) {
+        setDisplayName(null);
+        return;
+      }
+      try {
+        const me = await fetchMe();
+        const name = (me.full_name ?? me.email ?? "").trim();
+        setDisplayName(name || null);
+      } catch {
+        // If token is invalid/expired, force logout UX
+        setDisplayName(null);
+      }
+    };
+    void refresh();
+    return onAuthChanged(() => {
+      void refresh();
+    });
   }, []);
 
   return (
@@ -41,12 +59,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
               Configure VM
             </Link>
           )}
-          <Link
-            href="/marketplace"
-            className="block rounded-md px-3 py-2 hover:bg-slate-200 dark:hover:bg-slate-800"
-          >
-            VM Marketplace
-          </Link>
           {isAuthenticated && (
             <>
               <Link
@@ -72,7 +84,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               compute<span className="text-brand-500">Store</span>
             </div>
             <span className="text-xs md:text-sm text-slate-400">
-              Configure VM · Marketplace · Monitoring
+              Configure VM · Monitoring
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs md:text-sm">
@@ -98,8 +110,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
               </>
             ) : (
               <>
-                <span className="hidden md:inline text-slate-500 dark:text-slate-400">
-                  Logged in
+                <span className="hidden md:inline text-slate-600 dark:text-slate-300">
+                  {displayName ? `Hi, ${displayName}` : "Logged in"}
                 </span>
                 <button
                   type="button"

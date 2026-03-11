@@ -17,7 +17,7 @@ export default function CartPage() {
   const [error, setError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [cardNumber, setCardNumber] = useState("4242424242424242");
+  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
   const [cardExpMonth, setCardExpMonth] = useState("12");
   const [cardExpYear, setCardExpYear] = useState("2030");
   const [cardCvc, setCardCvc] = useState("123");
@@ -126,7 +126,7 @@ export default function CartPage() {
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <label className="block text-slate-400 mb-1">
-                      Card number (test only)
+                      Card number 
                     </label>
                     <input
                       className="input"

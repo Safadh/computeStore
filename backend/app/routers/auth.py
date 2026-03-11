@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import create_access_token, get_password_hash, verify_password
+from app.auth import create_access_token, get_current_user, get_password_hash, verify_password
 from app.database import get_db
 from app.models import User
 from app.schemas import Token, UserCreate, UserRead
@@ -55,4 +55,9 @@ async def login(
 
     token = create_access_token(subject=user.email)
     return Token(access_token=token)
+
+
+@router.get("/me", response_model=UserRead)
+async def me(current_user: Annotated[User, Depends(get_current_user)]) -> UserRead:
+    return UserRead.model_validate(current_user)
 
